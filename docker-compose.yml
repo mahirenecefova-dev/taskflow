@@ -1,0 +1,19 @@
+# Lokal inkişaf üçün MySQL:  docker compose up -d
+# Sonra:  export DB_PASSWORD=taskflowpass  &&  python app.py
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: taskflow
+      MYSQL_USER: taskflow
+      MYSQL_PASSWORD: taskflowpass
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - taskflow_mysql:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  taskflow_mysql:

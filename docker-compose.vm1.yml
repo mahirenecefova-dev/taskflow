@@ -1,0 +1,10 @@
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: taskflow-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"

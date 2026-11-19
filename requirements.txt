@@ -1,0 +1,5 @@
+Flask>=3.0
+PyMySQL>=1.1
+cryptography>=42.0   # MySQL 8-in caching_sha2_password autentifikasiyası üçün lazımdır
+gunicorn>=22.0
+pytest>=8.0
