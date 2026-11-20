@@ -1,0 +1,20 @@
+# VM2 (Flask) -> /etc/systemd/system/taskflow.service
+# MySQL istifadə olunduğu üçün birdən çox worker təhlükəsizdir (JSON versiyasından fərqli olaraq).
+[Unit]
+Description=TaskFlow Flask backend (gunicorn + MySQL)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+User=taskflow
+Group=taskflow
+WorkingDirectory=/opt/taskflow
+EnvironmentFile=/etc/taskflow.env
+Environment="TASKFLOW_LOG_DIR=/var/log/taskflow"
+Environment="TASKFLOW_SECRET_FILE=/opt/taskflow/secret.key"
+ExecStart=/opt/taskflow/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:5000 app:app
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
