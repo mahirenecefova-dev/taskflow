@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TaskFlow — Tapşırıq İdarəetmə Sistemi</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- ===================== GİRİŞ / QEYDİYYAT ===================== -->
+  <section id="auth-view" class="auth hidden">
+    <div class="auth-card">
+      <div class="brand"><span class="logo">✓</span> TaskFlow</div>
+      <p class="muted center">Tapşırıqlarınızı asanlıqla idarə edin</p>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-auth-tab="login">Giriş</button>
+        <button class="tab" data-auth-tab="register">Qeydiyyat</button>
+      </div>
+
+      <form id="login-form" class="form">
+        <label>İstifadəçi adı
+          <input name="username" autocomplete="username" required>
+        </label>
+        <label>Parol
+          <input name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn primary block" type="submit">Daxil ol</button>
+      </form>
+
+      <form id="register-form" class="form hidden">
+        <label>İstifadəçi adı
+          <input name="username" autocomplete="username" minlength="3" maxlength="32" required>
+        </label>
+        <label>Parol (ən azı 6 simvol)
+          <input name="password" type="password" autocomplete="new-password" minlength="6" required>
+        </label>
+        <label>Parolu təkrarlayın
+          <input name="password2" type="password" autocomplete="new-password" minlength="6" required>
+        </label>
+        <button class="btn primary block" type="submit">Qeydiyyatdan keç</button>
+      </form>
+
+      <p id="auth-error" class="error hidden"></p>
+    </div>
+  </section>
+
+  <!-- ===================== ƏSAS TƏTBİQ ===================== -->
+  <div id="app-view" class="hidden">
+    <header class="topbar">
+      <div class="brand"><span class="logo">✓</span> TaskFlow</div>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="dashboard">📊 Dashboard</button>
+        <button class="nav-btn" data-view="tasks">📋 Tapşırıqlar</button>
+      </nav>
+      <div class="user">
+        <span id="username-label" class="muted"></span>
+        <button id="logout-btn" class="btn ghost small">Çıxış</button>
+      </div>
+    </header>
+
+    <main class="container">
+
+      <!-- DASHBOARD -->
+      <section id="dashboard-view">
+        <div class="section-head">
+          <h2>Şəxsi dashboard</h2>
+          <button class="btn primary" data-new-task>+ Yeni tapşırıq</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-num" id="st-total">0</span><span class="stat-label">Ümumi</span></div>
+          <div class="stat s-todo"><span class="stat-num" id="st-todo">0</span><span class="stat-label">Gözləyir</span></div>
+          <div class="stat s-prog"><span class="stat-num" id="st-prog">0</span><span class="stat-label">Davam edir</span></div>
+          <div class="stat s-done"><span class="stat-num" id="st-done">0</span><span class="stat-label">Tamamlanıb</span></div>
+          <div class="stat s-over"><span class="stat-num" id="st-over">0</span><span class="stat-label">Gecikmiş</span></div>
+          <div class="stat s-today"><span class="stat-num" id="st-today">0</span><span class="stat-label">Bu gün</span></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Tamamlanma faizi</h3>
+            <div class="progress"><div id="progress-bar" class="progress-bar"></div></div>
+            <p class="muted"><strong id="st-rate">0</strong>% tapşırıq tamamlanıb</p>
+
+            <h3 class="mt">Prioritetə görə</h3>
+            <div id="priority-bars" class="bars"></div>
+          </div>
+
+          <div class="card">
+            <h3>Yaxınlaşan son tarixlər</h3>
+            <ul id="upcoming-list" class="simple-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAPŞIRIQLAR -->
+      <section id="tasks-view" class="hidden">
+        <div class="section-head">
+          <h2>Tapşırıqlarım</h2>
+          <button class="btn primary" data-new-task>+ Yeni tapşırıq</button>
+        </div>
+
+        <div class="filters card">
+          <input id="f-search" type="search" placeholder="🔍 Axtarış...">
+          <select id="f-status">
+            <option value="">Bütün statuslar</option>
+            <option value="todo">Gözləyir</option>
+            <option value="in_progress">Davam edir</option>
+            <option value="done">Tamamlanıb</option>
+          </select>
+          <select id="f-priority">
+            <option value="">Bütün prioritetlər</option>
+            <option value="high">Yüksək</option>
+            <option value="medium">Orta</option>
+            <option value="low">Aşağı</option>
+          </select>
+          <select id="f-sort">
+            <option value="created">Yeni əvvəl</option>
+            <option value="due">Son tarixə görə</option>
+            <option value="priority">Prioritetə görə</option>
+          </select>
+        </div>
+
+        <div id="task-list" class="task-list"></div>
+        <p id="empty-msg" class="muted center hidden">Heç bir tapşırıq tapılmadı.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===================== MODAL ===================== -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3 id="modal-title">Yeni tapşırıq</h3>
+      <form id="task-form" class="form">
+        <input type="hidden" name="id">
+        <label>Başlıq *
+          <input name="title" maxlength="120" required>
+        </label>
+        <label>Təsvir
+          <textarea name="description" rows="3" maxlength="2000"></textarea>
+        </label>
+        <div class="row">
+          <label>Status
+            <select name="status">
+              <option value="todo">Gözləyir</option>
+              <option value="in_progress">Davam edir</option>
+              <option value="done">Tamamlanıb</option>
+            </select>
+          </label>
+          <label>Prioritet
+            <select name="priority">
+              <option value="low">Aşağı</option>
+              <option value="medium" selected>Orta</option>
+              <option value="high">Yüksək</option>
+            </select>
+          </label>
+        </div>
+        <label>Son tarix
+          <input name="due_date" type="date">
+        </label>
+        <p id="modal-error" class="error hidden"></p>
+        <div class="modal-actions">
+          <button type="button" id="modal-cancel" class="btn ghost">Ləğv et</button>
+          <button type="submit" class="btn primary">Yadda saxla</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
